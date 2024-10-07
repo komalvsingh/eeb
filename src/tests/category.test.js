@@ -1,15 +1,15 @@
-const request = require('supertest')
-const app = require('../app')
-const Category = require('../models/category')
-const User = require('../models/user')
-const { hash } = require('bcryptjs')
-const mongoose = require('mongoose')
+import request from 'supertest'
+import app from '../app'
+import Category, { deleteMany, find, findById } from '../models/category'
+import User, { deleteMany as _deleteMany } from '../models/user'
+import { hash } from 'bcryptjs'
+import { Types } from 'mongoose'
 
 describe('Categories API', () => {
   let tempUser, token, category
   beforeAll(async () => {
-    await Category.deleteMany({})
-    await User.deleteMany({})
+    await deleteMany({})
+    await _deleteMany({})
 
     tempUser = new User({
       name: 'Giridhar',
@@ -40,8 +40,8 @@ describe('Categories API', () => {
   }, 50000)
 
   afterAll(async () => {
-    await User.deleteMany({})
-    await Category.deleteMany({})
+    await _deleteMany({})
+    await deleteMany({})
   })
 
   describe('POST /api/categories', () => {
@@ -82,7 +82,7 @@ describe('Categories API', () => {
 
   describe('GET /api/categories/:id', () => {
     test('should return a single category by id', async () => {
-      const categories = await Category.find()
+      const categories = await find()
       const category = categories[0]
       const response = await request(app).get(`/api/categories/${category._id}`)
       expect(response.status).toBe(200)
@@ -94,7 +94,7 @@ describe('Categories API', () => {
 
     test('should return an error if category is not found', async () => {
       const response = await request(app).get(
-        `/api/categories/${new mongoose.Types.ObjectId().toHexString()}`
+        `/api/categories/${new Types.ObjectId().toHexString()}`
       )
       expect(response.status).toBe(404)
       expect(response.body.message).toBe('Category not found! 😢')
@@ -103,7 +103,7 @@ describe('Categories API', () => {
 
   describe('PATCH /api/categories/:id', () => {
     test('should update a category by id', async () => {
-      const categories = await Category.find()
+      const categories = await find()
       const category = categories[0]
       const response = await request(app)
         .patch(`/api/categories/${category._id}`)
@@ -118,7 +118,7 @@ describe('Categories API', () => {
 
     test('should return an error if category is not found', async () => {
       const response = await request(app)
-        .patch(`/api/categories/${new mongoose.Types.ObjectId().toHexString()}`)
+        .patch(`/api/categories/${new Types.ObjectId().toHexString()}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'New Category', description: 'New description' })
       expect(response.status).toBe(404)
@@ -137,7 +137,7 @@ describe('Categories API', () => {
       expect(response.body.category._id).toEqual(category._id.toString())
 
       // Verify that the category was deleted from the database
-      const deletedCategory = await Category.findById(category._id)
+      const deletedCategory = await findById(category._id)
       expect(deletedCategory).toBeNull()
     })
 

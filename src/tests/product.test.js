@@ -1,17 +1,17 @@
-const request = require('supertest')
-const app = require('../app')
-const Product = require('../models/product')
-const User = require('../models/user')
-const { hash } = require('bcryptjs')
-const mongoose = require('mongoose')
+import request from 'supertest'
+import app from '../app'
+import Product, { deleteMany, insertMany, findOne, findById, prototype } from '../models/product'
+import User, { deleteMany as _deleteMany } from '../models/user'
+import { hash } from 'bcryptjs'
+import { Types } from 'mongoose'
 
 describe('Product API', () => {
   let token, tempUser
 
   // Define a beforeAll hook to connect to the database and set up test data
   beforeAll(async () => {
-    await Product.deleteMany({})
-    await User.deleteMany({})
+    await deleteMany({})
+    await _deleteMany({})
 
     tempUser = new User({
       name: 'Giridhar',
@@ -33,13 +33,13 @@ describe('Product API', () => {
     token = user.body.accessToken
 
     // Insert some test products into the database
-    await Product.insertMany([
+    await insertMany([
       {
         name: 'iPhone X',
         price: 799,
         description: 'A large phone with one of the best screens',
         seller: tempUser._id,
-        category: new mongoose.Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 100,
         image: 'https://source.unsplash.com/random/?iphone',
         media: [
@@ -52,7 +52,7 @@ describe('Product API', () => {
         price: 699,
         description: 'A great phone with one of the best cameras',
         seller: tempUser._id,
-        category: new mongoose.Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 50,
         image: 'https://source.unsplash.com/random/?samsunggalaxy',
         media: [
@@ -65,7 +65,7 @@ describe('Product API', () => {
         price: 649,
         description: 'Good phone with native android features',
         seller: tempUser._id,
-        category: new mongoose.Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 75,
         image: 'https://source.unsplash.com/random/?pixel6',
         media: [
@@ -78,7 +78,7 @@ describe('Product API', () => {
         price: 199,
         description: 'A great laptop that is also a tablet',
         seller: tempUser._id,
-        category: new mongoose.Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 0,
         image: 'https://source.unsplash.com/random/?hplaptop',
         media: [
@@ -91,7 +91,7 @@ describe('Product API', () => {
         price: 200,
         description: 'A great book for kids',
         seller: tempUser._id,
-        category: new mongoose.Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 2500,
         image: 'https://source.unsplash.com/random/?harrypotter',
         media: [
@@ -103,8 +103,8 @@ describe('Product API', () => {
   }, 20000)
 
   afterAll(async () => {
-    await User.deleteMany({})
-    await Product.deleteMany({})
+    await _deleteMany({})
+    await deleteMany({})
   }, 20000)
 
   describe('GET /products', () => {
@@ -161,7 +161,7 @@ describe('Product API', () => {
     let productId
     beforeAll(async () => {
       // Get product ID
-      const product = await Product.findOne({ name: 'iPhone X' })
+      const product = await findOne({ name: 'iPhone X' })
       productId = product._id
     })
 
@@ -178,7 +178,7 @@ describe('Product API', () => {
 
     test('returns a 404 error for invalid product ID', async () => {
       const response = await request(app)
-        .get(`/api/products/${new mongoose.Types.ObjectId()}`)
+        .get(`/api/products/${new Types.ObjectId()}`)
         .set('Authorization', `Bearer ${token}`)
         .expect(404)
 
@@ -213,8 +213,8 @@ describe('Product API', () => {
       name: 'Test Product',
       description: 'Test Description',
       price: 999,
-      category: new mongoose.Types.ObjectId().toHexString(),
-      seller: new mongoose.Types.ObjectId().toHexString(),
+      category: new Types.ObjectId().toHexString(),
+      seller: new Types.ObjectId().toHexString(),
       image: 'https://source.unsplash.com/random/?testproduct',
       media: [
         'https://source.unsplash.com/random/?testproduct',
@@ -234,12 +234,12 @@ describe('Product API', () => {
       expect(response.body.product).toBeDefined()
       expect(response.body.product).toHaveProperty('name', 'Test Product')
 
-      const savedProduct = await Product.findById(response.body.product._id)
+      const savedProduct = await findById(response.body.product._id)
       expect(savedProduct).toHaveProperty('name', 'Test Product')
     })
 
     test('should return an error if the product cannot be added', async () => {
-      jest.spyOn(Product.prototype, 'save').mockRejectedValue(new Error('Test Error'))
+      jest.spyOn(prototype, 'save').mockRejectedValue(new Error('Test Error'))
 
       const response = await request(app)
         .post('/api/products')
@@ -250,7 +250,7 @@ describe('Product API', () => {
       expect(response.body.type).toBe('error')
       expect(response.body.message).toBe('Error adding product! 😢')
       expect(response.body.error).toBeDefined()
-      Product.prototype.save.mockRestore()
+      prototype.save.mockRestore()
     })
 
     test('should return an error if the product missing required values', async () => {
@@ -285,12 +285,12 @@ describe('Product API', () => {
     let productId, token2
     beforeAll(async () => {
       // Get product ID
-      const product = await Product.findOne({ name: 'iPhone X' })
+      const product = await findOne({ name: 'iPhone X' })
       productId = product._id
     })
 
     test('should return 404 if product does not exist', async () => {
-      const id = new mongoose.Types.ObjectId().toHexString()
+      const id = new Types.ObjectId().toHexString()
       const response = await request(app)
         .put(`/api/products/${id}`)
         .set('Authorization', `Bearer ${token}`)
@@ -373,7 +373,7 @@ describe('Product API', () => {
         price: 999,
         description: 'A thin and light laptop',
         seller: tempUser._id,
-        category: new mongoose.Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 50,
         image: 'https://source.unsplash.com/random/?macbookair',
         media: [
@@ -385,11 +385,11 @@ describe('Product API', () => {
       await tempProduct.save()
       productId = tempProduct._id
 
-      product = await Product.findById(productId)
+      product = await findById(productId)
     })
 
     test("should return a 404 error if the product doesn't exist", async () => {
-      const invalidProductId = new mongoose.Types.ObjectId().toHexString()
+      const invalidProductId = new Types.ObjectId().toHexString()
 
       const response = await request(app)
         .delete(`/api/products/${invalidProductId}`)
@@ -435,7 +435,7 @@ describe('Product API', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200)
 
-      const deletedProduct = await Product.findById(productId)
+      const deletedProduct = await findById(productId)
 
       expect(deletedProduct).toBeFalsy()
     })

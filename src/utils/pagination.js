@@ -38,4 +38,4 @@ const getPaginatedData = async (model, options) => {
   }
 }
 
-module.exports = getPaginatedData
+export default getPaginatedData

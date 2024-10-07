@@ -1,12 +1,12 @@
-const request = require('supertest')
-const app = require('../app')
-const User = require('../models/user')
-const { hash } = require('bcryptjs')
+import request from 'supertest'
+import app from '../app'
+import User, { deleteMany } from '../models/user'
+import { hash } from 'bcryptjs'
 
 describe('Authentication API', () => {
   describe('POST /register', () => {
     test('Should create a new user', async () => {
-      await User.deleteMany({})
+      await deleteMany({})
       const response = await request(app)
         .post('/api/auth/register')
         .send({
@@ -77,7 +77,7 @@ describe('Authentication API', () => {
   })
   describe('POST /refresh_token', () => {
     test('Should refresh the access token', async () => {
-      await User.deleteMany({})
+      await deleteMany({})
 
       tempUser = new User({
         name: 'Giridhar',

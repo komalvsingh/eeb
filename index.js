@@ -1,10 +1,12 @@
-const server = require('./src/server')
-const logger = require('./src/utils/logger')
-const { PORT } = require('./src/utils/config')
+import server from './src/server.js'; // Use `import` with .js extension
+import logger from './src/utils/logger.js'; // Use `import` with .js extension
+import config from './src/utils/config.js'; // Use `import` with .js extension
+const { PORT } = config;
 
 server.listen(PORT, (err) => {
   if (err) {
-    logger.error(err?.message)
+    logger.error(err?.message);
+  } else {
+    logger.info(`🚀 Listening on port ${PORT}`);
   }
-  logger.info(`🚀 Listening on port ${PORT}`)
-})
+});

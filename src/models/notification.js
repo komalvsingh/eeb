@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose')
+import { Schema, model } from 'mongoose'
 
 const notificationSchema = new Schema(
   {
@@ -21,4 +21,4 @@ const notificationSchema = new Schema(
   }
 )
 
-module.exports = model('Notification', notificationSchema)
+export default model('Notification', notificationSchema)

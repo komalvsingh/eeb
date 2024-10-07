@@ -1,14 +1,14 @@
-const request = require('supertest')
-const app = require('../app')
-const User = require('../models/user')
-const { hash } = require('bcryptjs')
+import request from 'supertest'
+import app from '../app'
+import User, { deleteMany, findById } from '../models/user'
+import { hash } from 'bcryptjs'
 
 describe('User API', () => {
   let token, user
 
   // Define a beforeAll hook to connect to the database and set up test data
   beforeEach(async () => {
-    await User.deleteMany({})
+    await deleteMany({})
 
     const tempUser = new User({
       name: 'Giridhar',
@@ -28,7 +28,7 @@ describe('User API', () => {
       .expect(200)
 
     token = response.body.accessToken
-    user = await User.findById(tempUser._id)
+    user = await findById(tempUser._id)
   })
 
   afterAll(async () => {

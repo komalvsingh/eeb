@@ -1,14 +1,17 @@
-require('dotenv').config()
+import dotenv from 'dotenv';
 
-const PORT = process.env.PORT || 5000
+// Load environment variables
+dotenv.config();
 
-const MONGO_URI =
-  process.env.NODE_ENV === 'test' ? process.env.TEST_MONGO_URI : process.env.MONGO_URI
-const CLIENT_URL = process.env.NEXT_PUBLIC_URL
-module.exports = {
-  MONGO_URI,
-  PORT,
+const CLIENT_URL = process.env.NEXT_PUBLIC_URL;
+
+// Log to ensure CLIENT_URL is being read
+console.log("CLIENT_URL:", CLIENT_URL);
+
+const config = {
   CLIENT_URL,
+  PORT: process.env.PORT,
+  MONGO_URI:process.env.MONGO_URI,
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
   VERIFY_EMAIL_TOKEN_SECRET: process.env.VERIFY_EMAIL_TOKEN_SECRET,
@@ -21,4 +24,6 @@ module.exports = {
   ACCESS_TOKEN_LIFE: process.env.ACCESS_TOKEN_LIFE,
   REFRESH_TOKEN_LIFE: process.env.REFRESH_TOKEN_LIFE,
   ENV: process.env.NODE_ENV,
-}
+};
+
+export default config;

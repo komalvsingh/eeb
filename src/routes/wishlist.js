@@ -1,10 +1,10 @@
-const express = require('express')
-const router = express.Router()
-const Wishlist = require('../models/wishlist')
-const { isAuth } = require('../utils/isAuth')
-const logger = require('../utils/logger')
+import { Router } from 'express'
+const router = Router()
+import Wishlist from '../models/wishlist.js'
+import isAuth from '../utils/isAuth.js'
+import logger from '../utils/logger.js'
 
-// Get all wishlists of a user
+// Obtener todas las listas de deseos de un usuario
 router.get('/', isAuth, async (req, res) => {
   try {
     const wishlists = await Wishlist.find({ user: req.user._id }).populate({
@@ -16,13 +16,13 @@ router.get('/', isAuth, async (req, res) => {
   } catch (error) {
     logger.error(error)
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
     })
   }
 })
 
-// Create a new wishlist
+// Crear una nueva lista de deseos
 router.post('/', isAuth, async (req, res) => {
   const { name, description } = req.body
   try {
@@ -36,13 +36,13 @@ router.post('/', isAuth, async (req, res) => {
   } catch (error) {
     logger.error(error)
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
     })
   }
 })
 
-// Add a product to a wishlist
+// Agregar un producto a una lista de deseos
 router.post('/:id/products', isAuth, async (req, res) => {
   try {
     const wishlist = await Wishlist.findOne({
@@ -55,7 +55,7 @@ router.post('/:id/products', isAuth, async (req, res) => {
     })
     if (!wishlist) {
       return res.status(404).json({
-        message: "Wishlist doesn't exist! 😢",
+        message: '¡La lista de deseos no existe! 😢',
         type: 'error',
       })
     }
@@ -65,13 +65,13 @@ router.post('/:id/products', isAuth, async (req, res) => {
   } catch (error) {
     logger.error(error)
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
     })
   }
 })
 
-// Delete a product from a wishlist
+// Eliminar un producto de una lista de deseos
 router.delete('/:id/products/:productId', isAuth, async (req, res) => {
   try {
     const wishlist = await Wishlist.findOne({
@@ -84,7 +84,7 @@ router.delete('/:id/products/:productId', isAuth, async (req, res) => {
     })
     if (!wishlist) {
       return res.status(404).json({
-        message: "Wishlist doesn't exist! 😢",
+        message: '¡La lista de deseos no existe! 😢',
         type: 'error',
       })
     }
@@ -94,13 +94,13 @@ router.delete('/:id/products/:productId', isAuth, async (req, res) => {
   } catch (error) {
     logger.error(error)
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
     })
   }
 })
 
-// Delete a wishlist
+// Eliminar una lista de deseos
 router.delete('/:id', isAuth, async (req, res) => {
   try {
     const wishlist = await Wishlist.findOne({
@@ -109,22 +109,22 @@ router.delete('/:id', isAuth, async (req, res) => {
     })
     if (!wishlist) {
       return res.status(404).json({
-        message: "Wishlist doesn't exist! 😢",
+        message: '¡La lista de deseos no existe! 😢',
         type: 'error',
       })
     }
     await wishlist.deleteOne()
     res.json({
-      message: 'Wishlist deleted successfully! 🎉',
+      message: '¡Lista de deseos eliminada con éxito! 🎉',
       type: 'success',
     })
   } catch (error) {
     logger.error(error)
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
     })
   }
 })
 
-module.exports = router
+export default router

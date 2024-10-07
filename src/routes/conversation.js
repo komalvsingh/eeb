@@ -1,17 +1,18 @@
-const express = require('express')
-const router = express.Router()
-const Conversation = require('../models/conversation')
-const User = require('../models/user')
-const logger = require('../utils/logger')
-const { isAuth } = require('../utils/isAuth')
+import express from 'express';
+import Conversation from '../models/conversation.js';
+import User from '../models/user.js';
+import logger from '../utils/logger.js';
+import isAuth  from '../utils/isAuth.js';
 
-// new conv
+const router = express.Router();
+
+// new conversation
 router.post('/', isAuth, async (req, res) => {
-  const { userId } = req.body
+  const { userId } = req.body;
 
   if (!userId) {
-    console.log('UserId param not sent with request')
-    return res.sendStatus(400)
+    console.log('UserId param not sent with request');
+    return res.sendStatus(400);
   }
 
   let isConversation = await Conversation.find({
@@ -22,43 +23,41 @@ router.post('/', isAuth, async (req, res) => {
     ],
   })
     .populate('users')
-    .populate('latestMessage')
+    .populate('latestMessage');
 
   isConversation = await User.populate(isConversation, {
     path: 'latestMessage.sender',
     select: 'name profileImage email',
-  })
-
-  let chatData
+  });
 
   if (isConversation.length > 0) {
-    res.send(isConversation[0])
+    res.send(isConversation[0]);
   } else {
-    chatData = {
+    const chatData = {
       chatName: 'sender',
       isGroupChat: false,
       users: [req.user._id, userId],
-    }
+    };
 
     try {
-      const createdConversation = await Conversation.create(chatData)
+      const createdConversation = await Conversation.create(chatData);
       const FullChat = await Conversation.findOne({ _id: createdConversation._id }).populate(
         'users',
         '_id name email profileImage'
-      )
-      res.status(200).json(FullChat)
+      );
+      res.status(200).json(FullChat);
     } catch (error) {
-      logger.error(error)
+      logger.error(error);
       return res.status(500).json({
         type: 'error',
         message: 'Error creating chat!',
         error,
-      })
+      });
     }
   }
-})
+});
 
-// get convs
+// get conversations
 router.get('/', isAuth, async (req, res) => {
   try {
     Conversation.find({ users: { $elemMatch: { $eq: req.user._id } } })
@@ -70,32 +69,32 @@ router.get('/', isAuth, async (req, res) => {
         results = await User.populate(results, {
           path: 'latestMessage.sender',
           select: '_id name email profileImage',
-        })
-        res.status(200).send(results)
-      })
+        });
+        res.status(200).send(results);
+      });
   } catch (error) {
-    logger.error(error)
+    logger.error(error);
     return res.status(500).json({
       type: 'error',
       message: 'Error getting chat!',
       error,
-    })
+    });
   }
-})
+});
 
-// create group conv
+// create group conversation
 router.get('/group', async (req, res) => {
   if (!req.body.users || !req.body.name) {
-    return res.status(400).send({ message: 'Please Fill all the feilds' })
+    return res.status(400).send({ message: 'Please fill all the fields' });
   }
 
-  var users = JSON.parse(req.body.users)
+  const users = JSON.parse(req.body.users);
 
   if (users.length < 2) {
-    return res.status(400).send('More than 2 users are required to form a group chat')
+    return res.status(400).send('More than 2 users are required to form a group chat');
   }
 
-  users.push(req.user)
+  users.push(req.user);
 
   try {
     const groupChat = await Conversation.create({
@@ -103,39 +102,38 @@ router.get('/group', async (req, res) => {
       users: users,
       isGroupChat: true,
       groupAdmin: req.user,
-    })
+    });
 
     const fullGroupChat = await Conversation.findOne({ _id: groupChat._id })
       .populate('users', '_id name email profileImage')
-      .populate('groupAdmin', '_id name email profileImage')
+      .populate('groupAdmin', '_id name email profileImage');
 
-    res.status(200).json(fullGroupChat)
+    res.status(200).json(fullGroupChat);
   } catch (error) {
-    logger.error(error)
+    logger.error(error);
     return res.status(500).json({
       type: 'error',
-      message: 'Error creating user!',
+      message: 'Error creating group chat!',
       error,
-    })
+    });
   }
-})
+});
 
-// get conv includes two userId
-
+// get conversation including two userIds
 router.get('/find/:firstUserId/:secondUserId', async (req, res) => {
   try {
     const conversation = await Conversation.findOne({
       members: { $all: [req.params.firstUserId, req.params.secondUserId] },
-    })
-    res.status(200).json(conversation)
+    });
+    res.status(200).json(conversation);
   } catch (error) {
-    logger.error(error)
+    logger.error(error);
     return res.status(500).json({
       type: 'error',
-      message: 'Error creating user!',
+      message: 'Error getting conversation!',
       error,
-    })
+    });
   }
-})
+});
 
-module.exports = router
+export default router;

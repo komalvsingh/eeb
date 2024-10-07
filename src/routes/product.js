@@ -1,14 +1,15 @@
-const express = require('express')
-const router = express.Router()
-const logger = require('../utils/logger')
-const Product = require('../models/product')
-const { isAuth } = require('../utils/isAuth')
-const getPaginatedData = require('../utils/pagination')
-const Review = require('../models/review')
-const mongoose = require('mongoose')
-const Category = require('../models/category')
+import express from 'express'
+import logger from '../utils/logger.js'
+import Product from '../models/product.js'
+import  isAuth  from '../utils/isAuth.js'
+import getPaginatedData from '../utils/pagination.js'
+import Review from '../models/review.js'
+import mongoose from 'mongoose'
+import Category from '../models/category.js'
 
-// get all products
+const router = express.Router()
+
+// Get all products
 // GET /products?page=1&limit=10&search=phone&sort=-price
 router.get('/', async (req, res) => {
   try {
@@ -28,6 +29,7 @@ router.get('/', async (req, res) => {
           ],
         }
       : {}
+
     if (categoryId) {
       query.category = categoryId
     }
@@ -46,13 +48,13 @@ router.get('/', async (req, res) => {
   }
 })
 
-// get a product
+// Get a product
 router.get('/:productId', async (req, res) => {
   try {
     const productId = req.params.productId
     const product = await Product.findById(productId)
       .populate('seller', '_id name profileImage')
-      .populate('category', '_id, name')
+      .populate('category', '_id name')
 
     if (!product) {
       return res.status(404).json({
@@ -64,7 +66,6 @@ router.get('/:productId', async (req, res) => {
     res.status(200).json(product)
   } catch (error) {
     logger.error(error)
-
     return res.status(500).json({
       type: 'error',
       message: 'Error fetching product! 😢',
@@ -73,7 +74,7 @@ router.get('/:productId', async (req, res) => {
   }
 })
 
-// get reviews of a product
+// Get reviews of a product
 router.get('/:productId/reviews', async (req, res) => {
   try {
     const productId = req.params.productId
@@ -125,7 +126,7 @@ router.get('/:productId/reviews', async (req, res) => {
   }
 })
 
-// add a product
+// Add a product
 router.post('/', isAuth, async (req, res) => {
   try {
     const { name, description, price, category, condition, seller, image, media } = req.body
@@ -174,7 +175,7 @@ router.put('/:id', isAuth, async (req, res) => {
     const productId = req.params.id
     const product = await Product.findById(productId)
       .populate('seller', '_id name profileImage')
-      .populate('category', '_id, name')
+      .populate('category', '_id name')
 
     if (!product) {
       return res.status(404).json({
@@ -210,7 +211,7 @@ router.put('/:id', isAuth, async (req, res) => {
   }
 })
 
-// delete a product
+// Delete a product
 router.delete('/:id', isAuth, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
@@ -245,4 +246,4 @@ router.delete('/:id', isAuth, async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

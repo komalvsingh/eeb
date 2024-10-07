@@ -1,8 +1,8 @@
-const request = require('supertest')
-const { hash } = require('bcryptjs')
-const app = require('../app')
-const User = require('../models/user')
-const { createEmailVerificationToken, createPasswordResetToken } = require('../utils/tokens')
+import request from 'supertest'
+import { hash } from 'bcryptjs'
+import app from '../app'
+import User, { deleteMany, findById } from '../models/user'
+import { createEmailVerificationToken, createPasswordResetToken } from '../utils/tokens'
 
 describe('Authentication API', () => {
   describe('GET /status', () => {
@@ -20,7 +20,7 @@ describe('Authentication API', () => {
     })
     it('should return "You are logged in! 🤗" with the user information if the user is authenticated', async () => {
       // Create a mock user
-      await User.deleteMany({})
+      await deleteMany({})
       const tempUser = new User({
         name: 'Giridhar',
         email: 'talla_11915139@nitkkr.ac.in',
@@ -50,7 +50,7 @@ describe('Authentication API', () => {
     })
     it('should return "Invalid token! 😢" if the token is invalid', async () => {
       // Create a mock user
-      await User.deleteMany({})
+      await deleteMany({})
       const user = new User({
         name: 'Giridhar',
         email: 'talla_11915139@nitkkr.ac.in',
@@ -65,7 +65,7 @@ describe('Authentication API', () => {
     })
     it("should verify the user's email and send a confirmation email if the token is valid", async () => {
       // Create a mock user
-      await User.deleteMany({})
+      await deleteMany({})
       const user = new User({
         name: 'Giridhar',
         email: 'talla_11915139@nitkkr.ac.in',
@@ -80,7 +80,7 @@ describe('Authentication API', () => {
       expect(response.status).toBe(200)
       expect(response.body.message).toBe('Email verification success! 📧')
       // Check that the user's "verified" flag has been set to true
-      const updatedUser = await User.findById(user._id)
+      const updatedUser = await findById(user._id)
       expect(updatedUser.verified).toBe(true)
       // TODO: Test that the confirmation email was sent successfully
     }, 50000)
@@ -88,7 +88,7 @@ describe('Authentication API', () => {
   describe('Password reset endpoints', () => {
     let testUser
     beforeAll(async () => {
-      await User.deleteMany({})
+      await deleteMany({})
       testUser = new User({
         name: 'Test User',
         email: 'giridhar.talla2002@gmail.com',
@@ -148,7 +148,7 @@ describe('Authentication API', () => {
         expect(response.status).toBe(200)
         expect(response.body.type).toBe('success')
         expect(response.body.message).toBe('Password reset successful!')
-        const updatedUser = await User.findById(testUser._id)
+        const updatedUser = await findById(testUser._id)
         expect(updatedUser.password).not.toBe(testUser.password)
         // TODO: Test that the confirmation email is sent
       })

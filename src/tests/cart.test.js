@@ -1,18 +1,18 @@
-const request = require('supertest')
-const app = require('../app')
-const User = require('../models/user')
-const Product = require('../models/product')
-const Cart = require('../models/cart')
-const logger = require('../utils/logger')
-const { hash } = require('bcryptjs')
-const mongoose = require('mongoose')
+import request from 'supertest'
+import app from '../app'
+import User, { deleteMany, findById } from '../models/user'
+import Product, { findById as _findById } from '../models/product'
+import Cart, { deleteMany as _deleteMany, findOne } from '../models/cart'
+import logger from '../utils/logger'
+import { hash } from 'bcryptjs'
+import { Types } from 'mongoose'
 
 describe('Cart API', () => {
   let token, user, product, tempProduct, productId, cart
 
   // Define a beforeAll hook to connect to the database and set up test data
   beforeAll(async () => {
-    await User.deleteMany({})
+    await deleteMany({})
 
     const tempUser = new User({
       name: 'Giridhar',
@@ -32,14 +32,14 @@ describe('Cart API', () => {
       .expect(200)
 
     token = response.body.accessToken
-    user = await User.findById(tempUser._id)
+    user = await findById(tempUser._id)
 
     tempProduct = new Product({
       name: 'Macbook Air',
       price: 999,
       description: 'A thin and light laptop',
       seller: tempUser._id,
-      category: new mongoose.Types.ObjectId().toHexString(),
+      category: new Types.ObjectId().toHexString(),
       popularity: 50,
       image: 'https://source.unsplash.com/random/?macbookair',
       media: [
@@ -51,7 +51,7 @@ describe('Cart API', () => {
     await tempProduct.save()
     productId = tempProduct._id
 
-    product = await Product.findById(productId)
+    product = await _findById(productId)
   })
 
   afterAll(async () => {
@@ -61,7 +61,7 @@ describe('Cart API', () => {
 
   beforeEach(async () => {
     // Clear the cart collection before each test
-    await Cart.deleteMany()
+    await _deleteMany()
 
     // Create a new cart for testing
     cart = new Cart({
@@ -100,11 +100,11 @@ describe('Cart API', () => {
 
       expect(res.body).toEqual({ message: 'Internal server error! 😢', type: 'error' })
       expect(logger.error).toHaveBeenCalledTimes(1)
-      expect(Cart.findOne).toHaveBeenCalledTimes(1)
-      expect(Cart.findOne).toHaveBeenCalledWith({ user: user._id })
+      expect(findOne).toHaveBeenCalledTimes(1)
+      expect(findOne).toHaveBeenCalledWith({ user: user._id })
 
       logger.error.mockRestore()
-      Cart.findOne.mockRestore()
+      findOne.mockRestore()
     })
 
     test('should return 401 if user is not authenticated', async () => {
@@ -119,8 +119,8 @@ describe('Cart API', () => {
         name: 'Test Product',
         price: 999,
         description: 'Test description',
-        seller: new mongoose.Types.ObjectId().toHexString(),
-        category: new mongoose.Types.ObjectId().toHexString(),
+        seller: new Types.ObjectId().toHexString(),
+        category: new Types.ObjectId().toHexString(),
         popularity: 50,
         image: 'https://source.unsplash.com/random/?macbookair',
         media: [
@@ -177,13 +177,13 @@ describe('Cart API', () => {
 
       // Restore the mocked functions to their original implementation
       logger.error.mockRestore()
-      Cart.findOne.mockRestore()
+      findOne.mockRestore()
     })
   })
 
   describe('DELETE /cart/:id', () => {
     test('should return 404 if product does not exist in cart', async () => {
-      const fakeProductId = new mongoose.Types.ObjectId()
+      const fakeProductId = new Types.ObjectId()
       const response = await request(app)
         .delete(`/api/cart/${fakeProductId}`)
         .set('Authorization', `Bearer ${token}`)
@@ -209,7 +209,7 @@ describe('Cart API', () => {
     })
 
     test('should return 404 if cart does not exist', async () => {
-      await Cart.deleteMany()
+      await _deleteMany()
 
       const response = await request(app)
         .delete(`/api/cart/${productId}`)

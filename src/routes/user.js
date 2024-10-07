@@ -1,26 +1,26 @@
-const express = require('express')
-const router = express.Router()
-const { isAuth } = require('../utils/isAuth')
-const Review = require('../models/review')
-const Product = require('../models/product')
-const User = require('../models/user')
+import { Router } from 'express';
+const router = Router();
+import isAuth from '../utils/isAuth.js'; // Ensure you use .js extension
+// const { isAuth } = isAuth;
+import Review from '../models/review.js'; // Ensure you use .js extension
+import Product from '../models/product.js'; // Ensure you use .js extension
+import User from '../models/user.js'; // Ensure you use .js extension
 
+// Obtener todos los usuarios
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find({})
-    return res.status(200).json(users)
+    const users = await User.find({});
+    return res.status(200).json(users);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
-    })
+    });
   }
-})
+});
 
-// Define route for getting user's own profile information
-// 644b9943abb40e22051e672a : 5139
-// 644bb98031828d3660be9c60 : 2002
+// Definir ruta para obtener la información del perfil del usuario
 router.get('/me', isAuth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
@@ -33,60 +33,61 @@ router.get('/me', isAuth, async (req, res) => {
           model: 'User',
         },
       })
-      .exec()
-    // If user is not found, return 404 error
+      .exec();
+    
+    // Si no se encuentra al usuario, devuelve un error 404
     if (!user) {
       return res.status(404).json({
-        message: "User doesn't exist! 😕",
+        message: '¡El usuario no existe! 😕',
         type: 'error',
-      })
+      });
     }
 
-    // If user is found, return user object
-    res.status(200).json(user)
+    // Si se encuentra al usuario, devuelve el objeto del usuario
+    res.status(200).json(user);
   } catch (error) {
-    // If there's an error, return 500 error
-    console.log(error)
+    // Si hay un error, devuelve un error 500
+    console.log(error);
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
-    })
+    });
   }
-})
+});
 
-// Define route for updating user's own profile information
+// Definir ruta para actualizar la información del perfil del usuario
 router.put('/me', isAuth, async (req, res) => {
   try {
-    const user = req.user
-    // If user is not found, return 404 error
+    const user = req.user;
+    // Si no se encuentra al usuario, devuelve un error 404
     if (!user) {
       return res.status(404).json({
-        message: "User doesn't exist! 😕",
+        message: '¡El usuario no existe! 😕',
         type: 'error',
-      })
+      });
     }
 
-    const updates = req.body
-    Object.assign(user, updates)
-    // Save updated user object to the database
-    await user.save()
+    const updates = req.body;
+    Object.assign(user, updates);
+    // Guardar el objeto del usuario actualizado en la base de datos
+    await user.save();
 
-    // Return success message and updated user object
+    // Devuelve un mensaje de éxito y el objeto del usuario actualizado
     res.status(200).json({
-      message: 'Profile updated successfully! 🎉',
+      message: '¡Perfil actualizado con éxito! 🎉',
       user,
-    })
+    });
   } catch (error) {
-    // If there's an error, return 500 error
-    console.log(error)
+    // Si hay un error, devuelve un error 500
+    console.log(error);
     res.status(500).json({
-      message: 'Internal server error! 😢',
+      message: '¡Error interno del servidor! 😢',
       type: 'error',
-    })
+    });
   }
-})
+});
 
-// Get user profile details
+// Obtener detalles del perfil del usuario
 router.get('/:id', isAuth, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate({
@@ -96,20 +97,20 @@ router.get('/:id', isAuth, async (req, res) => {
         select: '_id name profileImage',
         model: 'User',
       },
-    })
+    });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' })
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
-    res.json(user)
+    res.json(user);
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    console.error(error);
+    res.status(500).json({ message: 'Error del servidor' });
   }
-})
+});
 
-// Get reviews given to user
+// Obtener reseñas dadas al usuario
 router.get('/:id/reviews', isAuth, async (req, res) => {
   try {
     const reviews = await Review.find({
@@ -117,33 +118,31 @@ router.get('/:id/reviews', isAuth, async (req, res) => {
       'target.type': 'User',
     })
       .populate('reviewer', '_id name profileImage')
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: -1 });
 
-    console.log({ reviews })
+    console.log({ reviews });
 
-    res.json(reviews)
+    res.json(reviews);
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    console.error(error);
+    res.status(500).json({ message: 'Error del servidor' });
   }
-})
+});
 
-// Get products listed by user
+// Obtener productos listados por el usuario
 router.get('/:id/products', async (req, res) => {
   try {
     const products = await Product.find({ seller: req.params.id })
       .select('_id name image category price createdAt')
-      .populate('category')
-    // .populate('reviews')
-    // .populate('seller', '_id name profileImage')
+      .populate('category');
 
-    console.log({ products })
+    console.log({ products });
 
-    res.json(products)
+    res.json(products);
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Server Error' })
+    console.error(error);
+    res.status(500).json({ message: 'Error del servidor' });
   }
-})
+});
 
-module.exports = router
+export default router;

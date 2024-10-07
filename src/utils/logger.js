@@ -1,18 +1,19 @@
-const { ENV } = require('./config')
+import config from './config.js'; // Adjusted import to `config`, no `default` keyword needed
+const { ENV } = config;
 
 const info = (...params) => {
   if (ENV !== 'test') {
-    console.log(...params)
+    console.log(...params);
   }
-}
+};
 
 const error = (...params) => {
   if (ENV !== 'test') {
-    console.error(...params)
+    console.error(...params);
   }
-}
+};
 
-module.exports = {
+export default {
   info,
   error,
-}
+};

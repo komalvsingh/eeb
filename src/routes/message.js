@@ -1,12 +1,13 @@
-const express = require('express')
-const router = express.Router()
-const Conversation = require('../models/conversation')
-const Message = require('../models/message')
-const User = require('../models/user')
-const { isAuth } = require('../utils/isAuth')
-const logger = require('../utils/logger')
-//add
+import express from 'express'
+import Conversation from '../models/conversation.js'
+import Message from '../models/message.js'
+import User from '../models/user.js'
+import  isAuth  from '../utils/isAuth.js'
+import logger from '../utils/logger.js'
 
+const router = express.Router()
+
+// Add message
 router.post('/', isAuth, async (req, res) => {
   const { content, conversationId } = req.body
 
@@ -20,7 +21,7 @@ router.post('/', isAuth, async (req, res) => {
 
   let newMessage = {
     sender: req.user._id,
-    content: content,
+    content,
     chat: conversationId,
   }
 
@@ -49,8 +50,7 @@ router.post('/', isAuth, async (req, res) => {
   }
 })
 
-//get
-
+// Get messages
 router.get('/:conversationId', async (req, res) => {
   try {
     const messages = await Message.find({ chat: req.params.conversationId }).populate([
@@ -68,4 +68,4 @@ router.get('/:conversationId', async (req, res) => {
   }
 })
 
-module.exports = router
+export default router

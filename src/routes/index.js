@@ -1,20 +1,24 @@
-const express = require('express')
-const router = express.Router()
-const { verify } = require('jsonwebtoken')
+import express from 'express'
+import pkg from 'jsonwebtoken';
+const { verify } = pkg;
+import bcrypt from 'bcryptjs';
 
-const User = require('../models/user')
+const { hash } = pkg;
 
-const { createPasswordResetToken } = require('../utils/tokens')
-const {
+import User from '../models/user.js'
+import {
+  createPasswordResetToken,
   transporter,
   createPasswordResetUrl,
   passwordResetTemplate,
   passwordResetConfirmationTemplate,
   emailVerifyConfirmationTemplate,
-} = require('../utils/email')
-const { isAuth } = require('../utils/isAuth')
-const logger = require('../utils/logger')
-const { hash } = require('bcryptjs')
+} from '../utils/email.js'
+import isAuth from '../utils/isAuth.js';  // Correct, using default import
+
+import logger from '../utils/logger.js'
+
+const router = express.Router()
 
 // check the status of server
 router.get('/', function (_req, res) {
@@ -24,12 +28,13 @@ router.get('/', function (_req, res) {
 // get protected routes
 router.get('/protected', isAuth, async (req, res) => {
   try {
-    if (req.user)
+    if (req.user) {
       return res.json({
         message: 'You are logged in! 🤗',
         type: 'success',
         user: req.user,
       })
+    }
 
     return res.status(500).json({
       message: 'You are not logged in! 😢',
@@ -49,14 +54,14 @@ router.get('/protected', isAuth, async (req, res) => {
 router.get('/verify-email/:id/:token', async (req, res) => {
   try {
     const { id, token } = req.params
-
     const user = await User.findById(id)
 
-    if (!user)
+    if (!user) {
       return res.status(404).json({
         message: "User doesn't exist! 😢",
         type: 'error',
       })
+    }
 
     let isValid
     try {
@@ -68,23 +73,24 @@ router.get('/verify-email/:id/:token', async (req, res) => {
       })
     }
 
-    if (!isValid)
+    if (!isValid) {
       return res.status(403).json({
         message: 'Invalid token! 😢',
         type: 'error',
       })
+    }
 
     user.verified = true
-
     await user.save()
 
     const mailOptions = emailVerifyConfirmationTemplate(user)
     transporter.sendMail(mailOptions, (err, info) => {
-      if (err)
+      if (err) {
         return res.status(500).json({
           message: 'Error sending email! 😢',
           type: 'error',
         })
+      }
 
       return res.json({
         message: 'Email verification success! 📧',
@@ -105,16 +111,16 @@ router.get('/verify-email/:id/:token', async (req, res) => {
 router.post('/send-password-reset-email', async (req, res) => {
   try {
     const { email } = req.body
-
     const user = await User.findOne({ email }).select('+password')
-    if (!user)
+
+    if (!user) {
       return res.status(401).json({
         message: "User doesn't exist! 😢",
         type: 'error',
       })
+    }
 
     const token = createPasswordResetToken(user)
-
     const url = createPasswordResetUrl(user._id, token)
 
     const mailOptions = passwordResetTemplate(user, url)
@@ -149,11 +155,12 @@ router.post('/reset-password/:id/:token', async (req, res) => {
 
     const user = await User.findById(id)
 
-    if (!user)
+    if (!user) {
       return res.status(500).json({
         message: "User doesn't exist! 😢",
         type: 'error',
       })
+    }
 
     let isValid
     try {
@@ -165,23 +172,24 @@ router.post('/reset-password/:id/:token', async (req, res) => {
       })
     }
 
-    if (!isValid)
+    if (!isValid) {
       return res.status(500).json({
         message: 'Invalid token! 😢',
         type: 'error',
       })
+    }
 
     user.password = await hash(newPassword, 12)
-
     await user.save()
 
     const mailOptions = passwordResetConfirmationTemplate(user)
     transporter.sendMail(mailOptions, (err, info) => {
-      if (err)
+      if (err) {
         return res.status(500).json({
           message: 'Error sending email! 😢',
           type: 'error',
         })
+      }
 
       return res.json({
         message: 'Password reset successful!',
@@ -198,4 +206,4 @@ router.post('/reset-password/:id/:token', async (req, res) => {
   }
 })
 
-module.exports = router
+export default router
